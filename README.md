@@ -19,8 +19,8 @@ It turned out to be true. Delhi → Kolkata on 7 Dec 2026: the regular fare was 
 stops in Kolkata cost ₹7,049 (₹2,620 less).
 
 > **This is a hobby project for learning and fun, not a product.** It isn't meant for commercial use or for making
-> money, it isn't affiliated with any airline or fare provider, and nothing here is travel or legal advice. Please
-> read the [disclaimers](#disclaimers) before getting any ideas.
+> money ([licence](#licence)), it isn't affiliated with any airline or fare provider, and nothing here is travel or
+> legal advice. Please read the [disclaimers](#disclaimers) before getting any ideas.
 
 ## How it works
 
@@ -66,3 +66,8 @@ Hidden-city ticketing is a real thing, but so are its catches:
   itinerary with the airline before booking.
 - **No warranty.** This code is provided as is, for learning and personal curiosity. If you use it to book anything,
   you do so entirely at your own risk.
+
+## Licence
+
+[PolyForm Noncommercial 1.0.0](LICENSE.md): you're free to read, run, change and share it for personal, educational
+and other non-commercial purposes. Commercial use isn't allowed.
