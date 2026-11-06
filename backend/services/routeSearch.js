@@ -102,9 +102,31 @@ async function roughEstimates(origin, destination, ticketDestinations, date) {
   return new Map(rows.map((r) => [r.destination, { price: Number(r.price), currency: r.currency, observedAt: r.observedAt }]));
 }
 
-// Without a rough fare, destinations rank by fewest legs, then least extra flying past the destination
+// Without a rough fare, full scheduled paths rank before onward-only guesses, then fewest legs, then least
+// extra flying past the destination
 const compareDestinations = (a, b) =>
-  a.bestPath.legs.length - b.bestPath.legs.length || a.bestPath.minutesBeyond - b.bestPath.minutesBeyond;
+  Number(!!a.bestPath.onwardOnly) - Number(!!b.bestPath.onwardOnly) ||
+  a.bestPath.legs.length - b.bestPath.legs.length ||
+  a.bestPath.minutesBeyond - b.bestPath.minutesBeyond;
+
+const inEffect = (edge, day) => (!edge.validFrom || edge.validFrom <= day) && (!edge.validTo || day <= edge.validTo);
+
+// The free schedule misses many flights into smaller airports, so also offer each place reachable by an onward
+// flight from the destination on the travel day or the next. Live fares confirm whether a ticket through the
+// destination actually exists.
+function onwardOnlyPaths(graph, origin, destination, date) {
+  const weekday = isoWeekday(date);
+  const best = new Map();
+  for (const edge of graph.departures.get(destination) ?? []) {
+    if (edge.to === origin) continue;
+    const day = [0, 1].find((d) => edge.days.includes(weekdayAfter(weekday, d)) && inEffect(edge, addDays(date, d)));
+    if (day === undefined) continue;
+    const minutesBeyond = edge.arr - edge.dep;
+    if (best.has(edge.to) && best.get(edge.to).minutesBeyond <= minutesBeyond) continue;
+    best.set(edge.to, { finalDestination: edge.to, hiddenAt: -1, legs: [toLeg(edge, day)], minutesBeyond, onwardOnly: true });
+  }
+  return [...best.values()];
+}
 
 // Stage A: candidate ticket destinations from the local schedule only, no fare API calls
 export async function getCandidates(origin, destination, date, candidateLimit = config.search.candidateLimit) {
@@ -131,6 +153,11 @@ export async function getCandidates(origin, destination, date, candidateLimit = 
     entry.pathCount++;
     if (comparePaths(path, entry.bestPath) < 0) entry.bestPath = path;
     byDestination.set(path.finalDestination, entry);
+  }
+  for (const path of onwardOnlyPaths(graph, origin, destination, date)) {
+    if (!byDestination.has(path.finalDestination)) {
+      byDestination.set(path.finalDestination, { destination: path.finalDestination, pathCount: 0, bestPath: path });
+    }
   }
 
   const estimates = await roughEstimates(origin, destination, [...byDestination.keys()], date);

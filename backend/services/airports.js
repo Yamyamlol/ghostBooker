@@ -21,6 +21,16 @@ export async function importAirports() {
   return { imported: rows.length, withScheduledService: rows.filter((r) => r[5]).length };
 }
 
+// Airports with at least one active flight, for search autocomplete
+export async function listServedAirports() {
+  const [rows] = await pool.query(
+    `SELECT iata, name, city FROM airports
+     WHERE iata IN (SELECT dep_airport FROM flights WHERE active)
+     ORDER BY COALESCE(city, name)`,
+  );
+  return rows;
+}
+
 export async function getDomesticAirports() {
   const [rows] = await pool.query('SELECT iata FROM airports');
   return new Set(rows.map((r) => r.iata));

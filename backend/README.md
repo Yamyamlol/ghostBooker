@@ -18,6 +18,7 @@ npm run backend   # creates tables on startup, listens on :3000
 | Method | Path | Body / query | What it does | External calls |
 | --- | --- | --- | --- | --- |
 | POST | `/api/airports/import` | – | Loads Indian airports from OurAirports | OurAirports (free) |
+| GET | `/api/airports` | – | Airports with active flights, for search autocomplete | none |
 | POST | `/api/schedule/import-static` | `{ "force": false }` (optional) | Loads the free Hugging Face schedule (latest 12 months, re-dated to this year's seasons), reconciles, rebuilds the graph | Hugging Face (free) |
 | POST | `/api/schedule/refresh` | `{ "airports": ["DEL"], "force": false }` (both optional) | Pulls departures from AirLabs. Free keys can't page past ~100 rows, so this only completes for small airports or on a paid key | AirLabs, ~1 request per 50 routes per airport |
 | GET | `/api/schedule/status` | – | Graph size and version, recent imports | none |
