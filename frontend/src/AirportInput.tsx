@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { Airport } from './api'
+import { hintClass, inputClass, labelClass } from './ui'
 
 type Props = {
   id: string
@@ -59,11 +60,13 @@ export function AirportInput({ id, label, value, airports, onChange }: Props) {
   const place = airports.find((a) => a.iata === value)
 
   return (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
+    <div>
+      <label htmlFor={id} className={labelClass}>
+        {label}
+      </label>
       <input
         id={id}
-        className="code"
+        className={`${inputClass} font-mono text-lg tracking-[0.06em]`}
         role="combobox"
         aria-expanded={editing}
         aria-controls={`${id}-list`}
@@ -85,18 +88,23 @@ export function AirportInput({ id, label, value, airports, onChange }: Props) {
         autoCorrect="off"
         spellCheck={false}
       />
-      <span className="hint">{place ? (place.city ?? place.name) : ''}</span>
+      <span className={hintClass}>{place ? (place.city ?? place.name) : ''}</span>
 
       {editing && (
-        <ul id={`${id}-list`} role="listbox" className="combo-list">
-          {matches.length === 0 && <li className="combo-empty">No airport matches “{query}”</li>}
+        // Spans the whole From/To row (the nearest positioned parent), just under the inputs
+        <ul
+          id={`${id}-list`}
+          role="listbox"
+          className="absolute inset-x-0 top-[74px] z-10 max-h-72 overflow-y-auto overscroll-contain rounded-lg border border-line bg-field"
+        >
+          {matches.length === 0 && <li className="px-3 py-2.5 text-sm text-muted">No airport matches “{query}”</li>}
           {matches.map((a, i) => (
             <li
               key={a.iata}
               id={`${id}-opt-${i}`}
               role="option"
               aria-selected={i === active}
-              className="combo-option"
+              className="grid cursor-pointer grid-cols-[44px_auto_1fr] items-baseline gap-2.5 px-3 py-2.5 text-sm aria-selected:bg-bg"
               // mousedown (not click) so the choice lands before the input loses focus
               onMouseDown={(e) => {
                 e.preventDefault()
@@ -104,9 +112,9 @@ export function AirportInput({ id, label, value, airports, onChange }: Props) {
               }}
               onMouseEnter={() => setActive(i)}
             >
-              <span className="mono strong">{a.iata}</span>
+              <span className="font-mono font-semibold">{a.iata}</span>
               <span>{a.city ?? a.name}</span>
-              <span className="muted combo-name">{a.name}</span>
+              <span className="truncate text-xs text-muted">{a.name}</span>
             </li>
           ))}
         </ul>
